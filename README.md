@@ -1,73 +1,65 @@
-# React + TypeScript + Vite
+# AirTasker
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**AirTasker** is not just a Todo App—it's your complete daily planner that helps you organize and manage your tasks efficiently.
 
-Currently, two official plugins are available:
+## About AirTasker
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+AirTasker is a comprehensive task planning application built with React, TypeScript, and Vite. Unlike simple todo applications, AirTasker serves as your entire planning system, designed to help you structure and manage your daily tasks effectively.
 
-## React Compiler
+## Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Complete Daily Planner**: More than just a todo list—a full-featured planning system
+- **Persistent Storage**: Uses Web APIs `localStorage` to ensure your tasks are saved and persist across browser sessions
+- **Task Management**: Create, update, and organize your daily tasks with ease
+- **Modern UI**: Built with React and TypeScript for a smooth, responsive user experience
 
-## Expanding the ESLint configuration
+## Technology Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **React** - UI library
+- **TypeScript** - Type-safe JavaScript
+- **Vite** - Fast build tool and dev server
+- **Web APIs** - `localStorage` for persistent data storage
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Getting Started
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Prerequisites
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- Node.js (v18 or higher)
+- npm or yarn
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Installation
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+4. Open your browser and navigate to the local development URL (typically `http://localhost:5173`)
+
+## How It Works
+
+AirTasker leverages the browser's `localStorage` Web API to automatically save your tasks. This means:
+- Your tasks persist even after closing the browser
+- No backend server required—everything runs in your browser
+- Fast and reliable data storage
+
+## Development
+
+This project uses:
+- React with TypeScript for type safety
+- Vite for fast development and building
+- ESLint for code quality
+
+## Author
+
+Created by [Awais Ahmad](https://github.com/itsahmadawais/)
+
+---
+
+**Note**: AirTasker uses `localStorage` for data persistence. Your tasks are stored locally in your browser and will remain available across sessions.

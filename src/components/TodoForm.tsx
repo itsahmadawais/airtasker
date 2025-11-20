@@ -1,4 +1,4 @@
-import { type FC, useState, FormEvent } from 'react';
+import { type FC, useState, type FormEvent } from 'react';
 
 interface TodoFormProps {
   onAddTodo: (text: string) => void;
