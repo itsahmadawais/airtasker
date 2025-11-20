@@ -2,6 +2,12 @@
 
 **AirTasker** is not just a Todo App—it's your complete daily planner that helps you organize and manage your tasks efficiently.
 
+## 🚀 Try It Live
+
+You can use AirTasker for free at **[https://airtasker-seven.vercel.app/](https://airtasker-seven.vercel.app/)**. The app stores all your data in your browser using localStorage, ensuring your tasks persist across sessions while keeping your data private and secure.
+
+![AirTasker App Screenshot](screenshots/app.png)
+
 ## About AirTasker
 
 AirTasker is a comprehensive task planning application built with React, TypeScript, and Vite. Unlike simple todo applications, AirTasker serves as your entire planning system, designed to help you structure and manage your daily tasks effectively.
@@ -58,7 +64,7 @@ This project uses:
 
 ## Author
 
-Created by [Awais Ahmad](https://github.com/itsahmadawais/)
+Created with ❤️ by [Awais Ahmad](https://github.com/itsahmadawais/)
 
 ---
 
