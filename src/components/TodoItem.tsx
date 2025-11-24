@@ -1,6 +1,8 @@
 import { type FC, useState, useRef, useEffect, type FormEvent } from 'react';
 import type { Todo } from '../types/todo';
 import { SubTaskItem } from './SubTaskItem';
+import { ColorPicker } from './ColorPicker';
+import { getColorSchemeById } from '../constants/colorSchemes';
 
 interface TodoItemProps {
   todo: Todo;
@@ -11,6 +13,7 @@ interface TodoItemProps {
   onToggleSubTask: (todoId: string, subTaskId: string) => void;
   onDeleteSubTask: (todoId: string, subTaskId: string) => void;
   onUpdateSubTask: (todoId: string, subTaskId: string, text: string) => void;
+  onColorChange: (id: string, colorScheme: string) => void;
 }
 
 export const TodoItem: FC<TodoItemProps> = ({
@@ -22,13 +25,18 @@ export const TodoItem: FC<TodoItemProps> = ({
   onToggleSubTask,
   onDeleteSubTask,
   onUpdateSubTask,
+  onColorChange,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(todo.text);
   const [showSubTaskForm, setShowSubTaskForm] = useState(false);
   const [subTaskInput, setSubTaskInput] = useState('');
+  const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const subTaskInputRef = useRef<HTMLInputElement>(null);
+  const colorPickerTriggerRef = useRef<HTMLButtonElement>(null);
+
+  const colorScheme = getColorSchemeById(todo.colorScheme);
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -85,7 +93,7 @@ export const TodoItem: FC<TodoItemProps> = ({
       style={{
         background: todo.completed
           ? 'linear-gradient(145deg, #f5f5f5 0%, #e8e8e8 100%)'
-          : 'linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%)',
+          : colorScheme.background,
         boxShadow: todo.completed
           ? 'inset 2px 2px 4px rgba(0, 0, 0, 0.1), inset -2px -2px 4px rgba(255, 255, 255, 0.8), 0 2px 8px rgba(0, 0, 0, 0.1)'
           : '0 4px 12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.9)',
@@ -168,8 +176,11 @@ export const TodoItem: FC<TodoItemProps> = ({
           className={`flex-1 text-lg cursor-text select-none transition-all ${
             todo.completed
               ? 'line-through text-zinc-400'
-              : 'text-zinc-800 hover:text-zinc-600'
+              : 'hover:opacity-80'
           }`}
+          style={{
+            color: todo.completed ? undefined : colorScheme.foreground,
+          }}
         >
           {todo.text}
         </span>
@@ -242,6 +253,35 @@ export const TodoItem: FC<TodoItemProps> = ({
         >
           <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
         </svg>
+      </button>
+
+      {/* Color Picker Button */}
+      <button
+        ref={colorPickerTriggerRef}
+        onClick={() => setIsColorPickerOpen(!isColorPickerOpen)}
+        className="flex-shrink-0 p-2 rounded transition-all duration-200 cursor-pointer"
+        style={{
+          color: '#95a5a6',
+          background: 'transparent',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.color = colorScheme.foreground;
+          e.currentTarget.style.background = colorScheme.circleColor;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.color = '#95a5a6';
+          e.currentTarget.style.background = 'transparent';
+        }}
+        aria-label="Change color scheme"
+        title="Change color"
+      >
+        <div
+          className="w-4 h-4 rounded-full"
+          style={{
+            background: colorScheme.circleColor,
+            border: `2px solid ${colorScheme.foreground}`,
+          }}
+        />
       </button>
     </div>
 
@@ -342,6 +382,17 @@ export const TodoItem: FC<TodoItemProps> = ({
             </div>
           </form>
         </div>
+      )}
+
+      {/* Color Picker Popover */}
+      {isColorPickerOpen && (
+        <ColorPicker
+          isOpen={isColorPickerOpen}
+          selectedColorSchemeId={todo.colorScheme}
+          onColorChange={(colorSchemeId) => onColorChange(todo.id, colorSchemeId)}
+          onClose={() => setIsColorPickerOpen(false)}
+          triggerRef={colorPickerTriggerRef}
+        />
       )}
     </div>
   );

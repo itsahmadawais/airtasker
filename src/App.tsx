@@ -19,6 +19,7 @@ const App: FC = () => {
     toggleSubTask,
     deleteSubTask,
     updateSubTask,
+    updateTodoColor,
     clearCompleted,
     deleteAll,
     stats,
@@ -75,6 +76,7 @@ const App: FC = () => {
             onToggleSubTask={toggleSubTask}
             onDeleteSubTask={deleteSubTask}
             onUpdateSubTask={updateSubTask}
+            onColorChange={updateTodoColor}
           />
         </div>
 

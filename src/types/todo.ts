@@ -11,6 +11,7 @@ export interface Todo {
   text: string;
   completed: boolean;
   subTasks: SubTask[];
+  colorScheme: string;
   createdAt: Date;
   updatedAt: Date;
 }

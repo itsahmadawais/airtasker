@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import type { Todo, SubTask, FilterType } from '../types/todo';
+import { DEFAULT_COLOR_SCHEME_ID } from '../constants/colorSchemes';
 
 const STORAGE_KEY = 'todos';
 
@@ -17,6 +18,7 @@ const loadTodosFromStorage = (): Todo[] => {
         })),
         createdAt: new Date(todo.createdAt),
         updatedAt: new Date(todo.updatedAt),
+        colorScheme: todo.colorScheme || DEFAULT_COLOR_SCHEME_ID,
       })).map((todo: any) => ({
         ...todo,
         subTasks: todo.subTasks || [],
@@ -53,6 +55,7 @@ export const useTodos = () => {
       text: text.trim(),
       completed: false,
       subTasks: [],
+      colorScheme: DEFAULT_COLOR_SCHEME_ID,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -181,6 +184,16 @@ export const useTodos = () => {
     );
   }, []);
 
+  const updateTodoColor = useCallback((id: string, colorScheme: string) => {
+    setTodos((prev) =>
+      prev.map((todo) =>
+        todo.id === id
+          ? { ...todo, colorScheme, updatedAt: new Date() }
+          : todo
+      )
+    );
+  }, []);
+
   const clearCompleted = useCallback(() => {
     setTodos((prev) => prev.filter((todo) => !todo.completed));
   }, []);
@@ -216,6 +229,7 @@ export const useTodos = () => {
     toggleSubTask,
     deleteSubTask,
     updateSubTask,
+    updateTodoColor,
     clearCompleted,
     deleteAll,
     stats,

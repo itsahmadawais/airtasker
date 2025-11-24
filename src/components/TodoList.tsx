@@ -13,6 +13,7 @@ interface TodoListProps {
   onToggleSubTask: (todoId: string, subTaskId: string) => void;
   onDeleteSubTask: (todoId: string, subTaskId: string) => void;
   onUpdateSubTask: (todoId: string, subTaskId: string, text: string) => void;
+  onColorChange: (id: string, colorScheme: string) => void;
 }
 
 export const TodoList: FC<TodoListProps> = ({
@@ -25,6 +26,7 @@ export const TodoList: FC<TodoListProps> = ({
   onToggleSubTask,
   onDeleteSubTask,
   onUpdateSubTask,
+  onColorChange,
 }) => {
   if (todos.length === 0) {
     return (
@@ -49,6 +51,7 @@ export const TodoList: FC<TodoListProps> = ({
             onToggleSubTask={onToggleSubTask}
             onDeleteSubTask={onDeleteSubTask}
             onUpdateSubTask={onUpdateSubTask}
+            onColorChange={onColorChange}
           />
         ))}
       </div>
