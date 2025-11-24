@@ -1,13 +1,13 @@
 import { type FC, useRef, useEffect, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { COLOR_SCHEMES, getColorSchemeById } from '../constants/colorSchemes';
+import { COLOR_SCHEMES } from '../constants/colorSchemes';
 
 interface ColorPickerProps {
   isOpen: boolean;
   selectedColorSchemeId: string;
   onColorChange: (colorSchemeId: string) => void;
   onClose: () => void;
-  triggerRef: React.RefObject<HTMLElement>;
+  triggerRef: React.RefObject<HTMLElement | null>;
 }
 
 export const ColorPicker: FC<ColorPickerProps> = ({

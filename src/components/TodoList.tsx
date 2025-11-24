@@ -71,6 +71,7 @@ export const TodoList: FC<TodoListProps> = ({
           onToggleSubTask={onToggleSubTask}
           onDeleteSubTask={onDeleteSubTask}
           onUpdateSubTask={onUpdateSubTask}
+          onColorChange={onColorChange}
         />
       ))}
     </div>
