@@ -194,6 +194,33 @@ export const useTodos = () => {
     );
   }, []);
 
+  const reorderTodos = useCallback((activeId: string, overId: string) => {
+    setTodos((prev) => {
+      const oldIndex = prev.findIndex((t) => t.id === activeId);
+      const newIndex = prev.findIndex((t) => t.id === overId);
+      if (oldIndex === -1 || newIndex === -1) return prev;
+      const updated = [...prev];
+      const [moved] = updated.splice(oldIndex, 1);
+      updated.splice(newIndex, 0, moved);
+      return updated;
+    });
+  }, []);
+
+  const reorderSubTasks = useCallback((todoId: string, activeId: string, overId: string) => {
+    setTodos((prev) =>
+      prev.map((todo) => {
+        if (todo.id !== todoId) return todo;
+        const oldIndex = todo.subTasks.findIndex((st) => st.id === activeId);
+        const newIndex = todo.subTasks.findIndex((st) => st.id === overId);
+        if (oldIndex === -1 || newIndex === -1) return todo;
+        const updated = [...todo.subTasks];
+        const [moved] = updated.splice(oldIndex, 1);
+        updated.splice(newIndex, 0, moved);
+        return { ...todo, subTasks: updated, updatedAt: new Date() };
+      })
+    );
+  }, []);
+
   const clearCompleted = useCallback(() => {
     setTodos((prev) => prev.filter((todo) => !todo.completed));
   }, []);
@@ -230,6 +257,8 @@ export const useTodos = () => {
     deleteSubTask,
     updateSubTask,
     updateTodoColor,
+    reorderTodos,
+    reorderSubTasks,
     clearCompleted,
     deleteAll,
     stats,

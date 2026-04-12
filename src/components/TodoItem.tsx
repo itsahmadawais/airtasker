@@ -1,8 +1,22 @@
 import { type FC, useState, useRef, useEffect, type FormEvent } from 'react';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import type { Todo } from '../types/todo';
-import { SubTaskItem } from './SubTaskItem';
+import { SortableSubTaskItem } from './SortableSubTaskItem';
 import { ColorPicker } from './ColorPicker';
 import { getColorSchemeById } from '../constants/colorSchemes';
+import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
 
 interface TodoItemProps {
   todo: Todo;
@@ -14,6 +28,8 @@ interface TodoItemProps {
   onDeleteSubTask: (todoId: string, subTaskId: string) => void;
   onUpdateSubTask: (todoId: string, subTaskId: string, text: string) => void;
   onColorChange: (id: string, colorScheme: string) => void;
+  onReorderSubTasks: (todoId: string, activeId: string, overId: string) => void;
+  dragListeners?: SyntheticListenerMap;
 }
 
 export const TodoItem: FC<TodoItemProps> = ({
@@ -26,6 +42,8 @@ export const TodoItem: FC<TodoItemProps> = ({
   onDeleteSubTask,
   onUpdateSubTask,
   onColorChange,
+  onReorderSubTasks,
+  dragListeners,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(todo.text);
@@ -37,6 +55,11 @@ export const TodoItem: FC<TodoItemProps> = ({
   const colorPickerTriggerRef = useRef<HTMLButtonElement>(null);
 
   const colorScheme = getColorSchemeById(todo.colorScheme);
+
+  const subTaskSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor)
+  );
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -65,11 +88,8 @@ export const TodoItem: FC<TodoItemProps> = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSave();
-    } else if (e.key === 'Escape') {
-      handleCancel();
-    }
+    if (e.key === 'Enter') handleSave();
+    else if (e.key === 'Escape') handleCancel();
   };
 
   const handleAddSubTask = (e: FormEvent<HTMLFormElement>) => {
@@ -81,305 +101,261 @@ export const TodoItem: FC<TodoItemProps> = ({
     }
   };
 
+  const handleSubTaskDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      onReorderSubTasks(todo.id, active.id as string, over.id as string);
+    }
+  };
+
   useEffect(() => {
     if (showSubTaskForm && subTaskInputRef.current) {
       subTaskInputRef.current.focus();
     }
   }, [showSubTaskForm]);
 
+  const accentColor = colorScheme.foreground;
+
   return (
     <div
-      className="rounded-lg transition-all duration-200 mb-3 relative overflow-hidden"
+      className="group/card rounded-xl transition-all duration-150 relative overflow-hidden"
       style={{
-        background: todo.completed
-          ? 'linear-gradient(145deg, #f5f5f5 0%, #e8e8e8 100%)'
-          : colorScheme.background,
-        boxShadow: todo.completed
-          ? 'inset 2px 2px 4px rgba(0, 0, 0, 0.1), inset -2px -2px 4px rgba(255, 255, 255, 0.8), 0 2px 8px rgba(0, 0, 0, 0.1)'
-          : '0 4px 12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.9)',
-        border: '1px solid rgba(0, 0, 0, 0.08)',
+        backgroundColor: 'var(--color-surface)',
+        border: '1px solid var(--color-border)',
+        boxShadow: 'var(--shadow-xs)',
+        opacity: todo.completed ? 0.7 : 1,
       }}
       onMouseEnter={(e) => {
-        if (!todo.completed) {
-          e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9)';
-          e.currentTarget.style.transform = 'translateY(-2px)';
-        }
+        e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+        e.currentTarget.style.borderColor = 'var(--color-border-hover)';
       }}
       onMouseLeave={(e) => {
-        if (!todo.completed) {
-          e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.9)';
-          e.currentTarget.style.transform = 'translateY(0)';
-        }
+        e.currentTarget.style.boxShadow = 'var(--shadow-xs)';
+        e.currentTarget.style.borderColor = 'var(--color-border)';
       }}
     >
-      <div className="group flex items-center gap-3 p-4">
-      <button
-        onClick={() => onToggle(todo.id)}
-        className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer"
+      {/* Left accent stripe */}
+      <div
+        className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl transition-colors duration-200"
+        style={{ backgroundColor: todo.completed ? 'var(--color-completed-accent)' : accentColor }}
+      />
+
+      {/* Main row */}
+      <div
+        className="flex items-center gap-2 pl-1.5 pr-3 py-3"
         style={{
-          background: todo.completed
-            ? 'linear-gradient(145deg, #16a085 0%, #138d75 100%)'
-            : 'linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)',
-          border: todo.completed ? 'none' : '2px solid #d0d0d0',
-          boxShadow: todo.completed
-            ? 'inset 1px 1px 2px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(22, 160, 133, 0.3)'
-            : 'inset 2px 2px 4px rgba(0, 0, 0, 0.1), inset -2px -2px 4px rgba(255, 255, 255, 0.8)',
+          backgroundColor: todo.completed ? undefined : `${colorScheme.foreground}06`,
         }}
-        onMouseEnter={(e) => {
-          if (!todo.completed) {
-            e.currentTarget.style.borderColor = '#16a085';
-            e.currentTarget.style.boxShadow = 'inset 2px 2px 4px rgba(0, 0, 0, 0.1), inset -2px -2px 4px rgba(255, 255, 255, 0.8), 0 0 0 2px rgba(22, 160, 133, 0.2)';
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (!todo.completed) {
-            e.currentTarget.style.borderColor = '#d0d0d0';
-            e.currentTarget.style.boxShadow = 'inset 2px 2px 4px rgba(0, 0, 0, 0.1), inset -2px -2px 4px rgba(255, 255, 255, 0.8)';
-          }
-        }}
-        aria-label={todo.completed ? 'Mark as incomplete' : 'Mark as complete'}
       >
-        {todo.completed && (
-          <svg
-            className="w-4 h-4 text-white"
-            fill="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="3"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path d="M5 13l4 4L19 7"></path>
-          </svg>
-        )}
-      </button>
-
-      {isEditing ? (
-        <input
-          ref={inputRef}
-          type="text"
-          value={editText}
-          onChange={(e) => setEditText(e.target.value)}
-          onBlur={handleSave}
-          onKeyDown={handleKeyDown}
-          className="flex-1 px-2 py-1 rounded"
-          style={{
-            background: 'linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)',
-            border: '2px solid #16a085',
-            boxShadow: 'inset 2px 2px 4px rgba(0, 0, 0, 0.1), inset -2px -2px 4px rgba(255, 255, 255, 0.8), 0 0 0 2px rgba(22, 160, 133, 0.2)',
-            color: '#2c3e50',
-          }}
-        />
-      ) : (
-        <span
-          onClick={handleEdit}
-          className={`flex-1 text-lg cursor-text select-none transition-all ${
-            todo.completed
-              ? 'line-through text-zinc-400'
-              : 'hover:opacity-80'
-          }`}
-          style={{
-            color: todo.completed ? undefined : colorScheme.foreground,
-          }}
-        >
-          {todo.text}
-        </span>
-      )}
-
-      {!showSubTaskForm && (
+        {/* Drag handle */}
         <button
-          onClick={() => setShowSubTaskForm(true)}
-          className="flex-shrink-0 p-2 rounded transition-all duration-200 cursor-pointer"
-          style={{
-            background: 'transparent',
-            color: '#95a5a6',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'linear-gradient(145deg, #16a085 0%, #138d75 100%)';
-            e.currentTarget.style.boxShadow = '0 3px 8px rgba(22, 160, 133, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.2)';
-            e.currentTarget.style.transform = 'scale(1.05)';
-            const svg = e.currentTarget.querySelector('svg');
-            if (svg) svg.style.color = '#ffffff';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'transparent';
-            e.currentTarget.style.boxShadow = 'none';
-            e.currentTarget.style.transform = 'scale(1)';
-            const svg = e.currentTarget.querySelector('svg');
-            if (svg) svg.style.color = '#95a5a6';
-          }}
-          aria-label="Add sub-task"
+          className="flex-shrink-0 p-0.5 rounded cursor-grab active:cursor-grabbing touch-none opacity-0 group-hover/card:opacity-100 transition-opacity duration-150"
+          style={{ color: 'var(--color-text-tertiary)' }}
+          aria-label="Drag to reorder"
+          {...dragListeners}
         >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            style={{ color: '#95a5a6' }}
-          >
-            <path d="M12 4v16m8-8H4"></path>
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <circle cx="9" cy="5" r="1.5" /><circle cx="15" cy="5" r="1.5" />
+            <circle cx="9" cy="12" r="1.5" /><circle cx="15" cy="12" r="1.5" />
+            <circle cx="9" cy="19" r="1.5" /><circle cx="15" cy="19" r="1.5" />
           </svg>
         </button>
-      )}
 
-      <button
-        onClick={() => onDelete(todo.id)}
-        className="flex-shrink-0 p-2 rounded transition-all duration-200 cursor-pointer"
-        style={{
-          color: '#95a5a6',
-          background: 'transparent',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.color = '#ef4444';
-          e.currentTarget.style.background = '#fee2e2';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.color = '#95a5a6';
-          e.currentTarget.style.background = 'transparent';
-        }}
-        aria-label="Delete todo"
-      >
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-        </svg>
-      </button>
-
-      {/* Color Picker Button */}
-      <button
-        ref={colorPickerTriggerRef}
-        onClick={() => setIsColorPickerOpen(!isColorPickerOpen)}
-        className="flex-shrink-0 p-2 rounded transition-all duration-200 cursor-pointer"
-        style={{
-          color: '#95a5a6',
-          background: 'transparent',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.color = colorScheme.foreground;
-          e.currentTarget.style.background = colorScheme.circleColor;
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.color = '#95a5a6';
-          e.currentTarget.style.background = 'transparent';
-        }}
-        aria-label="Change color scheme"
-        title="Change color"
-      >
-        <div
-          className="w-4 h-4 rounded-full"
+        {/* Checkbox */}
+        <button
+          onClick={() => onToggle(todo.id)}
+          className="flex-shrink-0 w-[18px] h-[18px] rounded-full flex items-center justify-center transition-all duration-150 cursor-pointer"
           style={{
-            background: colorScheme.circleColor,
-            border: `2px solid ${colorScheme.foreground}`,
+            backgroundColor: todo.completed ? 'var(--color-accent)' : 'transparent',
+            border: todo.completed ? 'none' : `2px solid ${accentColor}40`,
           }}
-        />
-      </button>
-    </div>
+          onMouseEnter={(e) => {
+            if (!todo.completed) e.currentTarget.style.borderColor = accentColor;
+          }}
+          onMouseLeave={(e) => {
+            if (!todo.completed) e.currentTarget.style.borderColor = `${accentColor}40`;
+          }}
+          aria-label={todo.completed ? 'Mark as incomplete' : 'Mark as complete'}
+        >
+          {todo.completed && (
+            <svg className="w-2.5 h-2.5 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" viewBox="0 0 24 24" stroke="currentColor">
+              <path d="M5 13l4 4L19 7" />
+            </svg>
+          )}
+        </button>
 
-      {/* Sub-tasks section */}
-      {todo.subTasks.length > 0 && (
-        <div className="px-4 pb-2 space-y-1">
-          {todo.subTasks.map((subTask) => (
-            <SubTaskItem
-              key={subTask.id}
-              subTask={subTask}
-              onToggle={() => onToggleSubTask(todo.id, subTask.id)}
-              onDelete={() => onDeleteSubTask(todo.id, subTask.id)}
-              onUpdate={(text) => onUpdateSubTask(todo.id, subTask.id, text)}
+        {/* Title */}
+        {isEditing ? (
+          <input
+            ref={inputRef}
+            type="text"
+            value={editText}
+            onChange={(e) => setEditText(e.target.value)}
+            onBlur={handleSave}
+            onKeyDown={handleKeyDown}
+            className="flex-1 px-2 py-1 text-base rounded-md outline-none"
+            style={{
+              backgroundColor: 'var(--color-bg)',
+              border: '1px solid var(--color-accent)',
+              boxShadow: '0 0 0 3px var(--color-accent-ring)',
+              color: 'var(--color-text-primary)',
+            }}
+          />
+        ) : (
+          <span
+            onClick={handleEdit}
+            className={`flex-1 text-base cursor-text select-none transition-colors duration-150 ${
+              todo.completed ? 'line-through' : ''
+            }`}
+            style={{
+              color: todo.completed ? 'var(--color-text-tertiary)' : 'var(--color-text-primary)',
+            }}
+          >
+            {todo.text}
+          </span>
+        )}
+
+        {/* Action buttons */}
+        <div className="flex items-center gap-0.5 flex-shrink-0 opacity-0 group-hover/card:opacity-100 transition-opacity duration-150">
+          {!showSubTaskForm && (
+            <button
+              onClick={() => setShowSubTaskForm(true)}
+              className="p-1.5 rounded-md transition-all duration-150 cursor-pointer"
+              style={{ color: 'var(--color-text-tertiary)' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--color-accent-subtle)';
+                e.currentTarget.style.color = 'var(--color-accent)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.color = 'var(--color-text-tertiary)';
+              }}
+              aria-label="Add sub-task"
+              title="Add sub-task"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+            </button>
+          )}
+
+          <button
+            ref={colorPickerTriggerRef}
+            onClick={() => setIsColorPickerOpen(!isColorPickerOpen)}
+            className="p-1.5 rounded-md transition-all duration-150 cursor-pointer"
+            style={{ color: 'var(--color-text-tertiary)' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--color-bg)';
+              e.currentTarget.style.color = 'var(--color-text-secondary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.color = 'var(--color-text-tertiary)';
+            }}
+            aria-label="Change color"
+            title="Change color"
+          >
+            <div
+              className="w-3.5 h-3.5 rounded-full"
+              style={{
+                backgroundColor: colorScheme.circleColor,
+                border: `1.5px solid ${colorScheme.foreground}`,
+              }}
             />
-          ))}
+          </button>
+
+          <button
+            onClick={() => onDelete(todo.id)}
+            className="p-1.5 rounded-md transition-all duration-150 cursor-pointer"
+            style={{ color: 'var(--color-text-tertiary)' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--color-danger-subtle)';
+              e.currentTarget.style.color = 'var(--color-danger)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.color = 'var(--color-text-tertiary)';
+            }}
+            aria-label="Delete task"
+            title="Delete task"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Sub-tasks */}
+      {todo.subTasks.length > 0 && (
+        <div className="pl-1.5 pr-3 pb-2" style={{ borderTop: '1px solid var(--color-border-light)' }}>
+          <DndContext sensors={subTaskSensors} collisionDetection={closestCenter} onDragEnd={handleSubTaskDragEnd}>
+            <SortableContext items={todo.subTasks.map((st) => st.id)} strategy={verticalListSortingStrategy}>
+              <div>
+                {todo.subTasks.map((subTask) => (
+                  <SortableSubTaskItem
+                    key={subTask.id}
+                    subTask={subTask}
+                    onToggle={() => onToggleSubTask(todo.id, subTask.id)}
+                    onDelete={() => onDeleteSubTask(todo.id, subTask.id)}
+                    onUpdate={(text) => onUpdateSubTask(todo.id, subTask.id, text)}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
         </div>
       )}
 
       {/* Add sub-task form */}
       {showSubTaskForm && (
-        <div className="px-4 pb-3 pt-2 border-t border-zinc-200 mt-2">
-          <form onSubmit={handleAddSubTask} className="flex flex-col sm:flex-row gap-2">
+        <div className="pl-1.5 pr-3 pb-3 pt-2" style={{ borderTop: '1px solid var(--color-border-light)' }}>
+          <form onSubmit={handleAddSubTask} className="flex items-center gap-2">
             <input
               ref={subTaskInputRef}
               type="text"
               value={subTaskInput}
               onChange={(e) => setSubTaskInput(e.target.value)}
-              placeholder="Add sub-task..."
-              className="flex-1 px-2 py-1.5 text-xs sm:text-sm rounded transition-all todo-input min-w-0"
+              placeholder="Sub-task title..."
+              className="flex-1 px-2.5 py-1.5 text-sm rounded-md outline-none transition-all duration-150"
               style={{
-                background: 'linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)',
-                border: '2px solid #d0d0d0',
-                boxShadow: 'inset 2px 2px 4px rgba(0, 0, 0, 0.1), inset -2px -2px 4px rgba(255, 255, 255, 0.8)',
-                color: '#2c3e50',
+                backgroundColor: 'var(--color-bg)',
+                border: '1px solid var(--color-border)',
+                color: 'var(--color-text-primary)',
               }}
               onFocus={(e) => {
-                e.target.style.borderColor = '#16a085';
-                e.target.style.boxShadow = 'inset 2px 2px 4px rgba(0, 0, 0, 0.1), inset -2px -2px 4px rgba(255, 255, 255, 0.8), 0 0 0 2px rgba(22, 160, 133, 0.2)';
+                e.target.style.borderColor = 'var(--color-accent)';
+                e.target.style.boxShadow = '0 0 0 3px var(--color-accent-ring)';
               }}
               onBlur={(e) => {
-                e.target.style.borderColor = '#d0d0d0';
-                e.target.style.boxShadow = 'inset 2px 2px 4px rgba(0, 0, 0, 0.1), inset -2px -2px 4px rgba(255, 255, 255, 0.8)';
-                if (!subTaskInput.trim()) {
-                  setShowSubTaskForm(false);
-                }
+                e.target.style.borderColor = 'var(--color-border)';
+                e.target.style.boxShadow = 'none';
+                if (!subTaskInput.trim()) setShowSubTaskForm(false);
               }}
             />
-            <div className="flex gap-1.5 sm:flex-shrink-0">
-              <button
-                type="submit"
-                className="px-2 py-1.5 text-xs sm:text-sm text-white font-medium rounded transition-all duration-200 cursor-pointer whitespace-nowrap"
-                style={{
-                  background: 'linear-gradient(145deg, #16a085 0%, #138d75 100%)',
-                  boxShadow: '0 2px 8px rgba(22, 160, 133, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.2)',
-                }}
-                onMouseDown={(e) => {
-                  e.currentTarget.style.transform = 'translateY(1px)';
-                  e.currentTarget.style.boxShadow = '0 1px 4px rgba(22, 160, 133, 0.2), inset 0 1px 0 rgba(0, 0, 0, 0.2)';
-                }}
-                onMouseUp={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(22, 160, 133, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.2)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(22, 160, 133, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.2)';
-                }}
-              >
-                Add
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowSubTaskForm(false);
-                  setSubTaskInput('');
-                }}
-                className="px-2 py-1.5 text-xs sm:text-sm font-medium rounded transition-all duration-200 cursor-pointer whitespace-nowrap"
-                style={{
-                  background: 'linear-gradient(145deg, #f5f5f5 0%, #e8e8e8 100%)',
-                  color: '#34495e',
-                  boxShadow: 'inset 2px 2px 4px rgba(0, 0, 0, 0.1), inset -2px -2px 4px rgba(255, 255, 255, 0.8), 0 1px 2px rgba(0, 0, 0, 0.1)',
-                }}
-                onMouseDown={(e) => {
-                  e.currentTarget.style.transform = 'translateY(1px)';
-                  e.currentTarget.style.boxShadow = 'inset 2px 2px 4px rgba(0, 0, 0, 0.15)';
-                }}
-                onMouseUp={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = 'inset 2px 2px 4px rgba(0, 0, 0, 0.1), inset -2px -2px 4px rgba(255, 255, 255, 0.8), 0 1px 2px rgba(0, 0, 0, 0.1)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = 'inset 2px 2px 4px rgba(0, 0, 0, 0.1), inset -2px -2px 4px rgba(255, 255, 255, 0.8), 0 1px 2px rgba(0, 0, 0, 0.1)';
-                }}
-              >
-                Cancel
-              </button>
-            </div>
+            <button
+              type="submit"
+              className="px-2.5 py-1.5 text-sm font-medium text-white rounded-md transition-all duration-150 cursor-pointer"
+              style={{ backgroundColor: 'var(--color-accent)' }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-accent)'; }}
+            >
+              Add
+            </button>
+            <button
+              type="button"
+              onClick={() => { setShowSubTaskForm(false); setSubTaskInput(''); }}
+              className="px-2.5 py-1.5 text-sm font-medium rounded-md transition-all duration-150 cursor-pointer"
+              style={{
+                backgroundColor: 'var(--color-bg)',
+                color: 'var(--color-text-secondary)',
+                border: '1px solid var(--color-border)',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--color-border-hover)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--color-border)'; }}
+            >
+              Cancel
+            </button>
           </form>
         </div>
       )}
@@ -397,4 +373,3 @@ export const TodoItem: FC<TodoItemProps> = ({
     </div>
   );
 };
-

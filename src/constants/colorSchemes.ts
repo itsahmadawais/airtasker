@@ -1,73 +1,83 @@
 export interface ColorScheme {
   id: string;
   name: string;
-  background: string;
   foreground: string;
-  circleColor: string; // Solid color for the color picker circle
+  circleColor: string;
 }
 
-export const COLOR_SCHEMES: ColorScheme[] = [
+interface ColorSchemeDefinition {
+  id: string;
+  name: string;
+  light: { foreground: string; circleColor: string };
+  dark: { foreground: string; circleColor: string };
+}
+
+const SCHEME_DEFINITIONS: ColorSchemeDefinition[] = [
   {
     id: 'default',
-    name: 'Default',
-    background: 'linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%)',
-    foreground: '#2c3e50',
-    circleColor: '#f8f9fa',
+    name: 'Slate',
+    light: { foreground: '#475569', circleColor: '#e2e8f0' },
+    dark:  { foreground: '#94a3b8', circleColor: '#334155' },
   },
   {
     id: 'blue',
     name: 'Blue',
-    background: 'linear-gradient(145deg, #e3f2fd 0%, #bbdefb 100%)',
-    foreground: '#1565c0',
-    circleColor: '#bbdefb',
+    light: { foreground: '#2563eb', circleColor: '#bfdbfe' },
+    dark:  { foreground: '#60a5fa', circleColor: '#1e3a5f' },
   },
   {
     id: 'green',
     name: 'Green',
-    background: 'linear-gradient(145deg, #e8f5e9 0%, #c8e6c9 100%)',
-    foreground: '#2e7d32',
-    circleColor: '#c8e6c9',
+    light: { foreground: '#16a34a', circleColor: '#bbf7d0' },
+    dark:  { foreground: '#4ade80', circleColor: '#14532d' },
   },
   {
     id: 'purple',
     name: 'Purple',
-    background: 'linear-gradient(145deg, #f3e5f5 0%, #e1bee7 100%)',
-    foreground: '#7b1fa2',
-    circleColor: '#e1bee7',
+    light: { foreground: '#7c3aed', circleColor: '#e9d5ff' },
+    dark:  { foreground: '#a78bfa', circleColor: '#3b1f6e' },
   },
   {
     id: 'orange',
     name: 'Orange',
-    background: 'linear-gradient(145deg, #fff3e0 0%, #ffe0b2 100%)',
-    foreground: '#e65100',
-    circleColor: '#ffe0b2',
+    light: { foreground: '#ea580c', circleColor: '#fed7aa' },
+    dark:  { foreground: '#fb923c', circleColor: '#5c2d0e' },
   },
   {
     id: 'pink',
     name: 'Pink',
-    background: 'linear-gradient(145deg, #fce4ec 0%, #f8bbd0 100%)',
-    foreground: '#c2185b',
-    circleColor: '#f8bbd0',
+    light: { foreground: '#db2777', circleColor: '#fbcfe8' },
+    dark:  { foreground: '#f472b6', circleColor: '#5b1a3a' },
   },
   {
     id: 'teal',
     name: 'Teal',
-    background: 'linear-gradient(145deg, #e0f2f1 0%, #b2dfdb 100%)',
-    foreground: '#00695c',
-    circleColor: '#b2dfdb',
+    light: { foreground: '#0d9488', circleColor: '#99f6e4' },
+    dark:  { foreground: '#2dd4bf', circleColor: '#134e4a' },
   },
   {
     id: 'amber',
     name: 'Amber',
-    background: 'linear-gradient(145deg, #fff8e1 0%, #ffecb3 100%)',
-    foreground: '#ff6f00',
-    circleColor: '#ffecb3',
+    light: { foreground: '#d97706', circleColor: '#fde68a' },
+    dark:  { foreground: '#fbbf24', circleColor: '#5c3a0e' },
   },
 ];
 
 export const DEFAULT_COLOR_SCHEME_ID = 'default';
 
-export const getColorSchemeById = (id: string): ColorScheme => {
-  return COLOR_SCHEMES.find((scheme) => scheme.id === id) || COLOR_SCHEMES[0];
+const isDarkMode = (): boolean => {
+  return document.documentElement.getAttribute('data-theme') === 'dark';
 };
 
+export const getColorSchemeById = (id: string): ColorScheme => {
+  const def = SCHEME_DEFINITIONS.find((s) => s.id === id) || SCHEME_DEFINITIONS[0];
+  const palette = isDarkMode() ? def.dark : def.light;
+  return { id: def.id, name: def.name, ...palette };
+};
+
+export const COLOR_SCHEMES = SCHEME_DEFINITIONS.map((def) => ({
+  id: def.id,
+  name: def.name,
+  get foreground() { return (isDarkMode() ? def.dark : def.light).foreground; },
+  get circleColor() { return (isDarkMode() ? def.dark : def.light).circleColor; },
+}));

@@ -20,89 +20,83 @@ export const TodoFilters: FC<TodoFiltersProps> = ({
   onClearCompleted,
   onDeleteAll,
 }) => {
-  const filters: { label: string; value: FilterType }[] = [
-    { label: 'All', value: 'all' },
-    { label: 'Active', value: 'active' },
-    { label: 'Completed', value: 'completed' },
+  const filters: { label: string; value: FilterType; count: number }[] = [
+    { label: 'All', value: 'all', count: stats.total },
+    { label: 'Active', value: 'active', count: stats.active },
+    { label: 'Done', value: 'completed', count: stats.completed },
   ];
 
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex gap-1.5">
-        {filters.map((filter) => (
+    <div className="flex items-center gap-3">
+      {/* Segmented filter */}
+      <div
+        className="inline-flex items-center p-0.5 rounded-lg"
+        style={{
+          backgroundColor: 'var(--color-bg)',
+          border: '1px solid var(--color-border-light)',
+        }}
+      >
+        {filters.map((f) => (
           <button
-            key={filter.value}
-            onClick={() => onFilterChange(filter.value)}
-            className="px-3 py-1.5 text-sm rounded-lg font-medium transition-all duration-200 cursor-pointer"
+            key={f.value}
+            onClick={() => onFilterChange(f.value)}
+            className="relative px-3.5 py-1.5 text-sm font-medium rounded-md transition-all duration-150 cursor-pointer"
             style={{
-              background: currentFilter === filter.value
-                ? 'linear-gradient(145deg, #16a085 0%, #138d75 100%)'
-                : 'linear-gradient(145deg, #f5f5f5 0%, #e8e8e8 100%)',
-              color: currentFilter === filter.value ? '#ffffff' : '#34495e',
-              boxShadow: currentFilter === filter.value
-                ? 'inset 1px 1px 2px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(22, 160, 133, 0.3)'
-                : 'inset 2px 2px 4px rgba(0, 0, 0, 0.1), inset -2px -2px 4px rgba(255, 255, 255, 0.8), 0 1px 2px rgba(0, 0, 0, 0.1)',
-            }}
-            onMouseDown={(e) => {
-              if (currentFilter === filter.value) {
-                e.currentTarget.style.boxShadow = 'inset 2px 2px 4px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(22, 160, 133, 0.2)';
-                e.currentTarget.style.transform = 'translateY(1px)';
-              } else {
-                e.currentTarget.style.boxShadow = 'inset 2px 2px 4px rgba(0, 0, 0, 0.15)';
-                e.currentTarget.style.transform = 'translateY(1px)';
-              }
-            }}
-            onMouseUp={(e) => {
-              if (currentFilter === filter.value) {
-                e.currentTarget.style.boxShadow = 'inset 1px 1px 2px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(22, 160, 133, 0.3)';
-                e.currentTarget.style.transform = 'translateY(0)';
-              } else {
-                e.currentTarget.style.boxShadow = 'inset 2px 2px 4px rgba(0, 0, 0, 0.1), inset -2px -2px 4px rgba(255, 255, 255, 0.8), 0 1px 2px rgba(0, 0, 0, 0.1)';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (currentFilter === filter.value) {
-                e.currentTarget.style.boxShadow = 'inset 1px 1px 2px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(22, 160, 133, 0.3)';
-                e.currentTarget.style.transform = 'translateY(0)';
-              } else {
-                e.currentTarget.style.boxShadow = 'inset 2px 2px 4px rgba(0, 0, 0, 0.1), inset -2px -2px 4px rgba(255, 255, 255, 0.8), 0 1px 2px rgba(0, 0, 0, 0.1)';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }
+              backgroundColor: currentFilter === f.value ? 'var(--color-surface)' : 'transparent',
+              color: currentFilter === f.value ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
+              boxShadow: currentFilter === f.value ? 'var(--shadow-xs)' : 'none',
             }}
           >
-            {filter.label}
+            {f.label}
+            <span
+              className="ml-1.5 text-xs tabular-nums"
+              style={{ color: currentFilter === f.value ? 'var(--color-text-tertiary)' : 'var(--color-text-tertiary)' }}
+            >
+              {f.count}
+            </span>
           </button>
         ))}
       </div>
 
-      {stats.completed > 0 && (
+      {/* Actions */}
+      <div className="flex items-center gap-1 ml-1">
+        {stats.completed > 0 && (
+          <button
+            onClick={onClearCompleted}
+            className="px-2.5 py-1.5 text-sm font-medium rounded-md transition-all duration-150 cursor-pointer"
+            style={{ color: 'var(--color-text-tertiary)' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--color-danger-subtle)';
+              e.currentTarget.style.color = 'var(--color-danger)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.color = 'var(--color-text-tertiary)';
+            }}
+          >
+            Clear done
+          </button>
+        )}
         <button
-          onClick={onClearCompleted}
-          className="px-2 py-1.5 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 rounded font-medium transition-all duration-200 cursor-pointer ml-2"
+          onClick={onDeleteAll}
+          className="p-1.5 rounded-md transition-all duration-150 cursor-pointer"
+          style={{ color: 'var(--color-text-tertiary)' }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--color-danger-subtle)';
+            e.currentTarget.style.color = 'var(--color-danger)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent';
+            e.currentTarget.style.color = 'var(--color-text-tertiary)';
+          }}
+          title="Delete all tasks"
+          aria-label="Delete all tasks"
         >
-          Clear ({stats.completed})
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+          </svg>
         </button>
-      )}
-      <button
-        onClick={onDeleteAll}
-        className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-all duration-200 cursor-pointer ml-2"
-        title="Delete all tasks"
-        aria-label="Delete all tasks"
-      >
-        <svg
-          className="w-4 h-4"
-          fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-        </svg>
-      </button>
+      </div>
     </div>
   );
 };
-

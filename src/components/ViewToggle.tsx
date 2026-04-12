@@ -9,64 +9,43 @@ interface ViewToggleProps {
 
 export const ViewToggle: FC<ViewToggleProps> = ({ currentView, onViewChange }) => {
   return (
-    <div className="flex items-center gap-1.5">
+    <div
+      className="inline-flex items-center p-0.5 rounded-lg"
+      style={{
+        backgroundColor: 'var(--color-bg)',
+        border: '1px solid var(--color-border-light)',
+      }}
+    >
       <button
         onClick={() => onViewChange('list')}
-        className={`p-2 rounded-lg transition-all duration-200 cursor-pointer ${
-          currentView === 'list' ? 'text-white' : 'text-zinc-700'
-        }`}
+        className="p-1.5 rounded-md transition-all duration-150 cursor-pointer"
         style={{
-          background: currentView === 'list'
-            ? 'linear-gradient(145deg, #16a085 0%, #138d75 100%)'
-            : 'linear-gradient(145deg, #f5f5f5 0%, #e8e8e8 100%)',
-          boxShadow: currentView === 'list'
-            ? 'inset 1px 1px 2px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(22, 160, 133, 0.3)'
-            : 'inset 2px 2px 4px rgba(0, 0, 0, 0.1), inset -2px -2px 4px rgba(255, 255, 255, 0.8), 0 1px 2px rgba(0, 0, 0, 0.1)',
+          backgroundColor: currentView === 'list' ? 'var(--color-surface)' : 'transparent',
+          color: currentView === 'list' ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
+          boxShadow: currentView === 'list' ? 'var(--shadow-xs)' : 'none',
         }}
         aria-label="List view"
         title="List view"
       >
-        <svg
-          className="w-4 h-4"
-          fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path d="M4 6h16M4 12h16M4 18h16"></path>
+        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
         </svg>
       </button>
       <button
         onClick={() => onViewChange('grid')}
-        className={`p-2 rounded-lg transition-all duration-200 cursor-pointer ${
-          currentView === 'grid' ? 'text-white' : 'text-zinc-700'
-        }`}
+        className="p-1.5 rounded-md transition-all duration-150 cursor-pointer"
         style={{
-          background: currentView === 'grid'
-            ? 'linear-gradient(145deg, #16a085 0%, #138d75 100%)'
-            : 'linear-gradient(145deg, #f5f5f5 0%, #e8e8e8 100%)',
-          boxShadow: currentView === 'grid'
-            ? 'inset 1px 1px 2px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(22, 160, 133, 0.3)'
-            : 'inset 2px 2px 4px rgba(0, 0, 0, 0.1), inset -2px -2px 4px rgba(255, 255, 255, 0.8), 0 1px 2px rgba(0, 0, 0, 0.1)',
+          backgroundColor: currentView === 'grid' ? 'var(--color-surface)' : 'transparent',
+          color: currentView === 'grid' ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
+          boxShadow: currentView === 'grid' ? 'var(--shadow-xs)' : 'none',
         }}
         aria-label="Grid view"
         title="Grid view"
       >
-        <svg
-          className="w-4 h-4"
-          fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
         </svg>
       </button>
     </div>
   );
 };
-

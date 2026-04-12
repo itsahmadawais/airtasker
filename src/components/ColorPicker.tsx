@@ -28,48 +28,29 @@ export const ColorPicker: FC<ColorPickerProps> = ({
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 
-    // Start with position below and to the right of trigger
-    let top = triggerRect.bottom + 8;
+    let top = triggerRect.bottom + 6;
     let left = triggerRect.right - width;
 
-    // Adjust if popover would go off screen to the right
-    if (left + width > viewportWidth) {
-      left = triggerRect.left - width;
-    }
-    // If still off screen, align to trigger left
-    if (left < 8) {
-      left = triggerRect.left;
-    }
-    // If still too wide, align to right edge
-    if (left + width > viewportWidth) {
-      left = viewportWidth - width - 8;
-    }
-
-    // Adjust if popover would go off screen to the bottom
-    if (top + height > viewportHeight) {
-      top = triggerRect.top - height - 8;
-    }
-    // If still off screen, align to top
-    if (top < 8) {
-      top = 8;
-    }
+    if (left + width > viewportWidth) left = triggerRect.left - width;
+    if (left < 8) left = triggerRect.left;
+    if (left + width > viewportWidth) left = viewportWidth - width - 8;
+    if (top + height > viewportHeight) top = triggerRect.top - height - 6;
+    if (top < 8) top = 8;
 
     return { top, left };
   }, [triggerRef]);
 
-  // Calculate position when opening - render off-screen first to measure, then position
   useEffect(() => {
     if (isOpen && triggerRef.current) {
       setIsReady(false);
-      // First render off-screen to measure actual dimensions
       setPosition({ top: -9999, left: -9999 });
 
-      // Once rendered, measure and calculate correct position
       const timer = setTimeout(() => {
         if (popoverRef.current && triggerRef.current) {
-          const actualWidth = popoverRef.current.offsetWidth;
-          const actualHeight = popoverRef.current.offsetHeight;
-          const calculatedPosition = calculatePosition(actualWidth, actualHeight);
+          const calculatedPosition = calculatePosition(
+            popoverRef.current.offsetWidth,
+            popoverRef.current.offsetHeight
+          );
           if (calculatedPosition) {
             setPosition(calculatedPosition);
             setIsReady(true);
@@ -96,13 +77,8 @@ export const ColorPicker: FC<ColorPickerProps> = ({
       }
     };
 
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    if (isOpen) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen, triggerRef, onClose]);
 
   const handleColorSelect = (colorSchemeId: string) => {
@@ -110,80 +86,52 @@ export const ColorPicker: FC<ColorPickerProps> = ({
     onClose();
   };
 
-  if (!isOpen || !position) {
-    return null;
-  }
+  if (!isOpen || !position) return null;
 
   const popoverContent = (
     <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 z-40"
-        onClick={onClose}
-        style={{ backgroundColor: 'rgba(0, 0, 0, 0.1)' }}
-      />
-      {/* Popover */}
+      <div className="fixed inset-0 z-40" onClick={onClose} />
       <div
         ref={popoverRef}
-        className="fixed z-50 p-3 rounded-lg shadow-lg"
+        className="fixed z-50 p-3 rounded-xl"
         style={{
           top: `${position.top}px`,
           left: `${position.left}px`,
           visibility: isReady ? 'visible' : 'hidden',
-          background: 'linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%)',
-          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.1)',
-          border: '1px solid rgba(0, 0, 0, 0.1)',
+          backgroundColor: 'var(--color-surface)',
+          border: '1px solid var(--color-border)',
+          boxShadow: 'var(--shadow-overlay)',
         }}
       >
-        <div className="flex flex-wrap gap-2" style={{ minWidth: '200px' }}>
+        <p className="text-[10px] font-medium uppercase tracking-wider mb-2" style={{ color: 'var(--color-text-tertiary)' }}>
+          Label Color
+        </p>
+        <div className="flex flex-wrap gap-1.5" style={{ minWidth: '180px' }}>
           {COLOR_SCHEMES.map((scheme) => {
             const isSelected = scheme.id === selectedColorSchemeId;
-
             return (
               <button
                 key={scheme.id}
                 onClick={() => handleColorSelect(scheme.id)}
-                className="relative w-10 h-10 rounded-full transition-all duration-200 cursor-pointer"
+                className="relative w-8 h-8 rounded-lg transition-all duration-150 cursor-pointer"
                 style={{
-                  background: scheme.circleColor,
-                  border: isSelected ? `3px solid ${scheme.foreground}` : '2px solid rgba(0, 0, 0, 0.2)',
-                  boxShadow: isSelected
-                    ? `0 0 0 2px ${scheme.foreground}40, 0 4px 8px rgba(0, 0, 0, 0.2)`
-                    : '0 2px 4px rgba(0, 0, 0, 0.1)',
-                  transform: isSelected ? 'scale(1.1)' : 'scale(1)',
+                  backgroundColor: scheme.circleColor,
+                  border: isSelected ? `2px solid ${scheme.foreground}` : '1px solid var(--color-border)',
+                  boxShadow: isSelected ? `0 0 0 2px ${scheme.foreground}30` : 'none',
                 }}
                 onMouseEnter={(e) => {
-                  if (!isSelected) {
-                    e.currentTarget.style.transform = 'scale(1.15)';
-                    e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
-                  }
+                  if (!isSelected) e.currentTarget.style.borderColor = scheme.foreground;
                 }}
                 onMouseLeave={(e) => {
-                  if (!isSelected) {
-                    e.currentTarget.style.transform = 'scale(1)';
-                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
-                  }
+                  if (!isSelected) e.currentTarget.style.borderColor = 'var(--color-border)';
                 }}
-                aria-label={`Select ${scheme.name} color scheme`}
+                aria-label={`Select ${scheme.name} color`}
                 title={scheme.name}
               >
                 {isSelected && (
-                  <div
-                    className="absolute inset-0 flex items-center justify-center"
-                    style={{
-                      color: scheme.foreground,
-                    }}
-                  >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="3"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path d="M5 13l4 4L19 7"></path>
+                  <div className="absolute inset-0 flex items-center justify-center" style={{ color: scheme.foreground }}>
+                    <svg className="w-4 h-4" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" viewBox="0 0 24 24" stroke="currentColor">
+                      <path d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
                 )}
@@ -195,8 +143,5 @@ export const ColorPicker: FC<ColorPickerProps> = ({
     </>
   );
 
-  // Render using portal to avoid overflow issues
   return createPortal(popoverContent, document.body);
 };
-
-
