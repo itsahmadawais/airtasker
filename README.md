@@ -1,63 +1,80 @@
 # AirTasker
 
-**AirTasker** is not just a Todo App—it's your complete daily planner that helps you organize and manage your tasks efficiently. Built with an enterprise-grade UI, it offers a professional experience for structuring your day.
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-airtasker.vercel.app-brightgreen)](https://airtasker-seven.vercel.app/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-06B6D4?logo=tailwindcss)](https://tailwindcss.com/)
+[![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite)](https://vitejs.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
-## 🚀 Try It Live
+A feature-rich task manager with drag & drop, nested sub-tasks, color labels, dark/light mode, and list/grid views — built entirely in the browser with zero backend.
 
-You can use AirTasker for free at **[https://airtasker-seven.vercel.app/](https://airtasker-seven.vercel.app/)**. The app stores all your data in your browser using localStorage, ensuring your tasks persist across sessions while keeping your data private and secure.
+> **[→ Try it live](https://airtasker-seven.vercel.app/)** — no login, no setup, works instantly.
+
+---
 
 ![AirTasker App Screenshot](screenshots/app.png)
 
-## Features
+---
 
-- **Enterprise-Grade UI** — Clean, professional design inspired by tools like Linear and Notion
-- **Dark & Light Mode** — Toggle between themes with preferences saved automatically
-- **Drag & Drop Reordering** — Reposition both parent tasks and sub-tasks with intuitive drag handles
+## ✨ Features
+
+- **Drag & Drop Reordering** — Reposition both parent tasks and sub-tasks with intuitive drag handles, powered by `@dnd-kit` with separate sortable contexts per level
 - **Sub-Task Management** — Break tasks into smaller sub-tasks with independent completion tracking
-- **Color-Coded Labels** — 8 color schemes to categorize and visually distinguish tasks
-- **Persistent Storage** — All tasks, view preferences, and theme choices saved via `localStorage`
-- **List & Grid Views** — Switch between layouts with your preference remembered across sessions
-- **Filters** — Quickly filter by All, Active, or Completed tasks
+- **Color-Coded Labels** — 8 theme-aware color schemes to categorize and visually distinguish tasks
+- **Dark & Light Mode** — Toggle between themes; preference persisted automatically
+- **List & Grid Views** — Switch layouts with your preference remembered across sessions
 - **Inline Editing** — Click any task or sub-task title to edit it in place
+- **Filters** — Quickly filter by All, Active, or Completed tasks
+- **Persistent Storage** — All tasks, view preferences, and theme choices saved via `localStorage`
 - **Responsive Design** — Works seamlessly across desktop, tablet, and mobile
+- **Zero Backend** — Entirely client-side, no auth, no API calls, instant load
 
-## Technology Stack
+---
+
+## 🛠️ Tech Stack
 
 | Technology | Purpose |
 |---|---|
 | **React 19** | UI library |
 | **TypeScript** | Type-safe JavaScript |
-| **Vite** | Fast build tool and dev server |
+| **Vite** | Build tool and dev server |
 | **Tailwind CSS v4** | Utility-first styling |
 | **@dnd-kit** | Drag-and-drop reordering |
 | **localStorage** | Client-side data persistence |
 
-## Getting Started
+---
+
+## 💡 Design Decisions
+
+**Zero backend by design**
+All state lives in `localStorage` — instant load, works offline, and zero infrastructure cost. Not a limitation; a deliberate architectural choice for a tool that should just work.
+
+**Separate sortable contexts for nested drag-and-drop**
+`@dnd-kit` requires distinct `SortableContext` instances for nested lists. Parent tasks and sub-tasks each have their own context, preventing cross-level drag interference while keeping the state model flat.
+
+**CSS custom properties for theme-aware color schemes**
+Each of the 8 color labels has light and dark variants driven by a `data-theme` attribute on the root element. Switching themes requires zero JavaScript re-renders — just a single DOM attribute change.
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- Node.js (v18 or higher)
+- Node.js v18+
 - npm or yarn
 
 ### Installation
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/itsahmadawais/airtasker.git
-   cd airtasker
-   ```
+```bash
+git clone https://github.com/itsahmadawais/airtasker.git
+cd airtasker
+npm install
+npm run dev
+```
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
-
-4. Open your browser and navigate to `http://localhost:5173`
+Open [http://localhost:5173](http://localhost:5173)
 
 ### Build for Production
 
@@ -65,19 +82,11 @@ You can use AirTasker for free at **[https://airtasker-seven.vercel.app/](https:
 npm run build
 ```
 
-The output will be in the `dist/` directory, ready for deployment.
+Output goes to `dist/` — ready to deploy to Vercel, Netlify, or any static host.
 
-## How It Works
+---
 
-AirTasker runs entirely in the browser with zero backend dependencies:
-
-- **Tasks & sub-tasks** are saved to `localStorage` and persist across sessions
-- **View preference** (list/grid) is stored separately so your layout choice is remembered
-- **Theme preference** (light/dark) is applied on load via a `data-theme` attribute on the root element, with all colors driven by CSS custom properties
-- **Drag & drop** is powered by `@dnd-kit` with separate sortable contexts for parent tasks and sub-tasks within each card
-- **Color schemes** are theme-aware — each color has light and dark variants that automatically switch with the theme
-
-## Project Structure
+## 📁 Project Structure
 
 ```
 src/
@@ -103,10 +112,16 @@ src/
 └── main.tsx                    # Entry point
 ```
 
-## License
+---
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+## 📜 License
 
-## Author
+MIT — see [LICENSE](./LICENSE) for details.
 
-Created with ❤️ by [Awais Ahmad](https://github.com/itsahmadawais/)
+---
+
+## 👤 Author
+
+Built by [Awais Ahmad](https://github.com/itsahmadawais/)  
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-itsahmadawais-0077B5?logo=linkedin)](https://www.linkedin.com/in/itsahmadawais/)
