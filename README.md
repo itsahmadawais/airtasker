@@ -114,17 +114,6 @@ src/
 
 ---
 
-## 🗺️ Roadmap
-
-- [ ] Due dates & deadline reminders
-- [ ] Priority levels (High / Medium / Low)
-- [ ] Keyboard shortcuts
-- [ ] PWA support — install as desktop/mobile app
-- [ ] Export tasks to CSV / JSON
-- [ ] Optional cloud sync
-
----
-
 ## 📜 License
 
 MIT — see [LICENSE](./LICENSE) for details.
